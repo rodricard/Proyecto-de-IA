@@ -186,3 +186,72 @@ resultados, mejor_modelo = entrenador.entrenar(X_limpio, y)
 
 print("AGENTE 2 FINALIZADO")
 print("Modelos entrenados:", list(resultados.keys()))
+
+"""AGENTE 2: Entrenador con métricas"""
+
+class AgenteEntrenador:
+    def __init__(self):
+        self.modelos = {
+            "Regresión Logística": LogisticRegression(max_iter=1000),
+            "Árbol de Decisión": DecisionTreeClassifier(random_state=42),
+            "Random Forest": RandomForestClassifier(random_state=42)
+        }
+
+        self.resultados = {}
+        self.mejor_modelo = None
+        self.nombre_mejor_modelo = None
+        self.X_test = None
+        self.y_test = None
+
+    def entrenar(self, X, y):
+        X_train, X_test, y_train, y_test = train_test_split(
+            X,
+            y,
+            test_size=0.30,
+            random_state=42,
+            stratify=y
+        )
+
+        self.X_test = X_test
+        self.y_test = y_test
+
+        for nombre, modelo in self.modelos.items():
+            modelo.fit(X_train, y_train)
+            predicciones = modelo.predict(X_test)
+
+            if hasattr(modelo, "predict_proba"):
+                probabilidades = modelo.predict_proba(X_test)[:, 1]
+            else:
+                probabilidades = predicciones
+
+            self.resultados[nombre] = {
+                "accuracy": accuracy_score(y_test, predicciones),
+                "precision": precision_score(y_test, predicciones),
+                "recall": recall_score(y_test, predicciones),
+                "f1_score": f1_score(y_test, predicciones),
+                "predicciones": predicciones,
+                "probabilidades": probabilidades
+            }
+
+        self.nombre_mejor_modelo = max(
+            self.resultados,
+            key=lambda modelo: self.resultados[modelo]["f1_score"]
+        )
+
+        self.mejor_modelo = self.modelos[self.nombre_mejor_modelo]
+
+        return self.resultados, self.nombre_mejor_modelo
+
+
+"""Ejecutar AGENTE 2"""
+
+entrenador = AgenteEntrenador()
+
+resultados, mejor_modelo = entrenador.entrenar(X_limpio, y)
+
+print("AGENTE 2 FINALIZADO")
+print("Mejor modelo seleccionado:", mejor_modelo)
+
+tabla_resultados = pd.DataFrame(resultados).T
+
+display(tabla_resultados[["accuracy", "precision", "recall", "f1_score"]])
