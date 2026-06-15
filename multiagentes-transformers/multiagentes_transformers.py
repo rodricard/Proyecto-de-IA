@@ -255,3 +255,63 @@ print("Mejor modelo seleccionado:", mejor_modelo)
 tabla_resultados = pd.DataFrame(resultados).T
 
 display(tabla_resultados[["accuracy", "precision", "recall", "f1_score"]])
+
+"""Gráfico de comparación de modelos"""
+
+metricas = tabla_resultados[["accuracy", "precision", "recall", "f1_score"]]
+
+metricas.plot(kind="bar", figsize=(10, 6))
+
+plt.title("Comparación de modelos de Machine Learning")
+plt.xlabel("Modelos")
+plt.ylabel("Valor de la métrica")
+plt.ylim(0, 1)
+plt.grid(axis="y")
+plt.show()
+
+
+"""Curva ROC de los modelos"""
+
+plt.figure(figsize=(8, 6))
+
+for nombre, datos_modelo in resultados.items():
+    fpr, tpr, _ = roc_curve(
+        entrenador.y_test,
+        datos_modelo["probabilidades"]
+    )
+
+    roc_auc = auc(fpr, tpr)
+
+    plt.plot(
+        fpr,
+        tpr,
+        label=f"{nombre} - AUC: {roc_auc:.3f}"
+    )
+
+plt.plot([0, 1], [0, 1], linestyle="--")
+
+plt.title("Curva ROC de los modelos")
+plt.xlabel("Tasa de falsos positivos")
+plt.ylabel("Tasa de verdaderos positivos")
+plt.legend()
+plt.grid()
+plt.show()
+
+
+"""Matriz de confusión y reporte del mejor modelo"""
+
+predicciones_mejor_modelo = resultados[mejor_modelo]["predicciones"]
+
+matriz = confusion_matrix(entrenador.y_test, predicciones_mejor_modelo)
+reporte = classification_report(entrenador.y_test, predicciones_mejor_modelo)
+
+resultados[mejor_modelo]["matriz_confusion"] = matriz
+resultados[mejor_modelo]["reporte"] = reporte
+
+print("Mejor modelo:", mejor_modelo)
+
+print("\nMatriz de confusión:")
+print(matriz)
+
+print("\nReporte de clasificación:")
+print(reporte)
