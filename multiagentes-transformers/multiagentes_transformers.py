@@ -418,3 +418,15 @@ respuesta = comunicador.responder_pregunta(
 print("\nRESPUESTA DEL AGENTE 3")
 print("=" * 60)
 print(respuesta)
+
+"""Guardar métricas y reporte final"""
+
+tabla_metricas = tabla_resultados[["accuracy", "precision", "recall", "f1_score"]]
+
+tabla_metricas.to_csv("metricas_modelos.csv")
+
+with open("respuesta_agente_comunicador.txt", "w", encoding="utf-8") as archivo:
+    archivo.write(respuesta)
+
+print("Métricas guardadas como metricas_modelos.csv")
+print("Respuesta guardada como respuesta_agente_comunicador.txt")
