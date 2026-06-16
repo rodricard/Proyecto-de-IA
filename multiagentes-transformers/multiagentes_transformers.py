@@ -315,3 +315,87 @@ print(matriz)
 
 print("\nReporte de clasificación:")
 print(reporte)
+
+"""AGENTE 3: Comunicador interactivo con Transformers"""
+
+class AgenteComunicadorTransformer:
+    def __init__(self):
+        modelo = "google/flan-t5-small"
+        self.tokenizer = AutoTokenizer.from_pretrained(modelo)
+        self.model = AutoModelForSeq2SeqLM.from_pretrained(modelo)
+
+    def crear_contexto(self, df, resultados, mejor_modelo, columnas_numericas, columnas_categoricas):
+        mejor = resultados[mejor_modelo]
+
+        contexto = f"""
+Proyecto de Machine Learning multiagente.
+
+Dataset:
+- Nombre: clientes_sin_normalizar.csv
+- Cantidad de registros: {df.shape[0]}
+- Cantidad de columnas: {df.shape[1]}
+- Variable objetivo: compro
+- Columnas numéricas: {list(columnas_numericas)}
+- Columnas categóricas: {list(columnas_categoricas)}
+- Valores nulos totales antes de normalizar: {int(df.isnull().sum().sum())}
+
+Agente 1:
+- Limpia el dataset.
+- Imputa valores nulos.
+- Escala variables numéricas.
+- Codifica variables categóricas con One-Hot Encoding.
+- Genera dataset_limpio_normalizado.csv.
+
+Agente 2:
+- Entrena Regresión Logística, Árbol de Decisión y Random Forest.
+- Divide los datos en entrenamiento y prueba.
+- Evalúa los modelos con accuracy, precision, recall y F1 Score.
+- Selecciona el mejor modelo según F1 Score.
+
+Resultados:
+- Mejor modelo: {mejor_modelo}
+- Accuracy: {mejor["accuracy"]:.4f}
+- Precision: {mejor["precision"]:.4f}
+- Recall: {mejor["recall"]:.4f}
+- F1 Score: {mejor["f1_score"]:.4f}
+"""
+        return contexto
+
+    def responder_pregunta(self, pregunta, df, resultados, mejor_modelo, columnas_numericas, columnas_categoricas):
+        contexto = self.crear_contexto(
+            df,
+            resultados,
+            mejor_modelo,
+            columnas_numericas,
+            columnas_categoricas
+        )
+
+        prompt = f"""
+Responde en español de forma clara y académica usando solamente la información del contexto.
+
+Contexto:
+{contexto}
+
+Pregunta del usuario:
+{pregunta}
+
+Respuesta:
+"""
+
+        inputs = self.tokenizer(
+            prompt,
+            return_tensors="pt",
+            truncation=True,
+            max_length=512
+        )
+
+        outputs = self.model.generate(
+            **inputs,
+            max_new_tokens=180,
+            temperature=0.7,
+            do_sample=True
+        )
+
+        respuesta = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+        return respuesta
