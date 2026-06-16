@@ -399,3 +399,22 @@ Respuesta:
         respuesta = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
 
         return respuesta
+    
+    """Ejecutar AGENTE 3"""
+
+comunicador = AgenteComunicadorTransformer()
+
+pregunta_usuario = input("Ingrese una pregunta sobre el proyecto o el dataset: ")
+
+respuesta = comunicador.responder_pregunta(
+    pregunta=pregunta_usuario,
+    df=df,
+    resultados=resultados,
+    mejor_modelo=mejor_modelo,
+    columnas_numericas=columnas_numericas,
+    columnas_categoricas=columnas_categoricas
+)
+
+print("\nRESPUESTA DEL AGENTE 3")
+print("=" * 60)
+print(respuesta)
